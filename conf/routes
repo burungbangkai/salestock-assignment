@@ -1,0 +1,11 @@
+
+
+PUT     /:customerId/cart               controllers.ShoppingCart.create(customerId: String)
+GET     /:customerId/cart               controllers.ShoppingCart.get(customerId: String)
+DELETE  /:customerId/cart               controllers.ShoppingCart.delete(customerId: String)
+PUT     /:customerId/cart/coupon/:code  controllers.ShoppingCart.applyCoupon(customerId: String, code: String)
+PUT     /:customerId/cart/item          controllers.ShoppingCart.addItem(customerId: String)
+DELETE  /:customerId/cart/item/:itemId  controllers.ShoppingCart.removeItem(customerId: String, itemId: String)
+GET     /cart                           controllers.ShoppingCart.getAll
+
+
