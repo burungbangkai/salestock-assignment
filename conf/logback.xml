@@ -54,12 +54,12 @@
         <appender-ref ref="ACCESS_FILE" />
     </logger>
 
-    <logger name="app" level="INFO" additivity="false">
+    <logger name="app" level="DEBUG" additivity="false">
         <appender-ref ref="SERVER_FILE" />
         <appender-ref ref="ASYNCSTDOUT"/>
     </logger>
 
-    <root level="DEGUG">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="ASYNCSTDOUT"/>
     </root>
