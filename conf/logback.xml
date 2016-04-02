@@ -1,5 +1,11 @@
 <configuration>
 
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+    <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT" />
+    </appender>
+
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${user.dir}/logs/application.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -50,10 +56,12 @@
 
     <logger name="app" level="INFO" additivity="false">
         <appender-ref ref="SERVER_FILE" />
+        <appender-ref ref="ASYNCSTDOUT"/>
     </logger>
 
     <root level="DEGUG">
         <appender-ref ref="FILE"/>
+        <appender-ref ref="ASYNCSTDOUT"/>
     </root>
 
 </configuration>
