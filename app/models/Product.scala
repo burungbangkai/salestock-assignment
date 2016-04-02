@@ -41,7 +41,7 @@ class ProductRepo @Inject()(tepkinMongoApi: TepkinMongoApi) {
   implicit val ec = tepkinMongoApi.client.ec
   implicit val timeout: Timeout = 5.seconds
 
-  val products = tepkinMongoApi.client(tepkinMongoApi.db)("product")
+  val products = tepkinMongoApi.client(tepkinMongoApi.db)("products")
 
   def create(name: String, price: Double): Future[Option[Product]] = {
     val id = BsonObjectId.generate.identifier
