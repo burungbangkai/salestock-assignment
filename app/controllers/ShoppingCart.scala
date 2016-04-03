@@ -25,7 +25,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     * an endpoint for creating a cart for a customer. it will only crate new cart
     * if there is no cart exist for given @customerId, else it will return the existing cart.
     * @param customerId
-    * @return
+    * @return cart for given @customerId
     */
   def create(customerId: String) = Action.async {
     logger.debug(s"creating cart for $customerId")
@@ -42,7 +42,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
   }
 
   /**
-    * an endpoint for geting all the existing cart.
+    * an endpoint for retrieving  all the existing cart.
     * @return
     */
   def getAll = Action {
@@ -53,6 +53,11 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     Ok.sendEntity(Streamed(carts, None, Some(MimeTypes.JSON)))
   }
 
+  /**
+    * endpoint for retrieving a cart belonging to a specific customer id
+    * @param customerId
+    * @return the cart object if exist, or 404 error if not.
+    */
   def get(customerId: String) = Action.async {
     logger.debug(s"requesting cart for $customerId")
     cartRepo.findByCustomerId(customerId).map(maybeCart =>
@@ -62,6 +67,11 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     )
   }
 
+  /**
+    * endpoint for deleting a cart
+    * @param customerId
+    * @return
+    */
   def delete(customerId: String) = Action.async {
     logger.debug(s"deleting cart for $customerId")
     cartRepo.delete(customerId).map(result =>
@@ -73,6 +83,14 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     )
   }
 
+  /**
+    * endpoint for applying a coupon to a specific cart based on @customerId and coupon code
+    * @param customerId
+    * @param couponCode
+    * @return 404 if @customerId doesn't have a cart;
+    *         400 if the @couponCod is already invalid or not exist;
+    *         updated cart if the cart exist and the coupon is valid
+    */
   def applyCoupon(customerId: String, couponCode: String) = Action.async {
     logger.debug(s"applying coupon code: $couponCode for customer's ($customerId) cart")
     couponRepo.findByCode(couponCode)
@@ -93,14 +111,19 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
             BadRequest(s"invalid coupon: $couponCode")
           }
         ))
-    //    couponRepo.findByCode(couponCode).flatMap(maybeCoupon=>
-    //      cartRepo.findByCustomerId(customerId).flatMap(cart=>{
-    //        val updatedCart = Cart.setCoupon(cart.get,maybeCoupon.get)
-    //        cartRepo.update(updatedCart).map(result=> Ok(Json.toJson(result)))
-    //      })
-    //    )
   }
 
+  /**
+    * end point for adding an item to a cart. it will only update a cart if
+    * a cart is exist for given @customerId. Otherwise, it will return 404.
+    *
+    * the updated cart will contain the item in its item list (named sales)
+    * and with updated the total.
+    *
+    * the item to be added must be available inside the request body
+    * @param customerId
+    * @return updated cart or 404
+    */
   def addItem(customerId: String) = Action.async(parse.json) { request =>
     val item = Json.fromJson[Product](request.body)
     logger.debug(s"adding item $item to customer's ($customerId) cart")
@@ -118,6 +141,12 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     )
   }
 
+  /**
+    * end point for removing an item to a cart. it will only update a cart if
+    * a cart is exist for given @customerId. Otherwise, it will return 404
+    * @param customerId
+    * @return updated cart (the item list and total) or 404
+    */
   def removeItem(customerId: String, itemId: String) = Action.async {
     logger.debug(s"removing item with id: $itemId from customer's ($customerId) cart")
     cartRepo.findByCustomerId(customerId).flatMap(cart =>
