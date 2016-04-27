@@ -19,7 +19,39 @@ import scala.concurrent.duration._
 /**
  * Created by bistokdl on 3/30/16.
  */
-case class Cart(_id:String, customer_id: String, sales: List[Product], coupon: Option[Coupon], total: Double)
+case class Cart(_id:String, customer_id: String, sales: List[Product], coupon: Option[Coupon], total: Double){
+  def addItem(item: Product): Cart = {
+    val sales = this.sales :+ item
+    val couponValue = this.coupon.map(coupon=> coupon.value).getOrElse(0.0)
+    Cart(_id, customer_id,sales, coupon,total(sales,couponValue))
+  }
+
+  def removeItem(itemId: String): Cart = {
+    val index = sales.indexWhere(_._id==itemId)
+    if(index<0)
+      this
+    else{
+      val sales = this.sales.patch(index,Nil,1)
+      val couponValue = coupon.map(coupon=> coupon.value).getOrElse(0.0)
+      Cart(_id,customer_id,sales,coupon,total(sales,couponValue))
+    }
+  }
+
+  def setCoupon(coupon: Coupon): Cart ={
+    val existingCouponValue = this.coupon.map(coupon=> coupon.value).getOrElse(0.0)
+    val cartCoupon = Option{coupon}
+    Cart(_id,customer_id,sales,cartCoupon,
+      total(sales,coupon.value-existingCouponValue))
+  }
+
+  def total(sales: List[Product], couponCut: Double):Double ={
+    val total = sales.map(item=>item.price).sum - couponCut
+    if(total>0)
+      total
+    else
+      0
+  }
+}
 object Cart {
   implicit val chartFormatter = Json.format[Cart]
   def apply(bson: BsonDocument): JsResult[Cart] ={
@@ -32,34 +64,6 @@ object Cart {
       ("sales" := cart.sales.map(Product.toBsonDocument))~
       ("coupon" := cart.coupon.map(Coupon.toBsonDocument))~
       ("total" := cart.total)
-  }
-  def addItem(cart: Cart, item: Product): Cart= {
-    val sales = cart.sales :+ item
-    val couponValue = cart.coupon.map(coupon=> coupon.value).getOrElse(0.0)
-    Cart(cart._id, cart.customer_id,sales, cart.coupon,total(sales,couponValue))
-  }
-  def removeItem(cart: Cart, itemId: String): Cart = {
-    val index = cart.sales.indexWhere(_._id==itemId)
-    if(index<0)
-      cart
-    else{
-      val sales = cart.sales.patch(index,Nil,1)
-      val couponValue = cart.coupon.map(coupon=> coupon.value).getOrElse(0.0)
-      Cart(cart._id,cart.customer_id,sales,cart.coupon,total(sales,couponValue))
-    }
-  }
-  def total(sales: List[Product], couponCut: Double):Double ={
-    val total = sales.map(item=>item.price).sum - couponCut
-    if(total>0)
-      total
-    else
-      0
-  }
-  def setCoupon(cart:Cart, coupon: Coupon): Cart ={
-    val existingCouponValue = cart.coupon.map(coupon=> coupon.value).getOrElse(0.0)
-    val cartCoupon = Option{coupon}
-    Cart(cart._id,cart.customer_id,cart.sales,cartCoupon,
-      total(cart.sales,coupon.value-existingCouponValue))
   }
 }
 

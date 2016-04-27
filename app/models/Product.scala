@@ -19,7 +19,11 @@ import scala.concurrent.duration._
 /**
  * Created by bistokdl on 3/30/16.
  */
-case class Product(_id: String, name: String, price: Double)
+case class Product(_id: String, name: String, price: Double){
+  def update(newName: String, newPrice: Double): Product = {
+    Product(_id,newName,newPrice)
+  }
+}
 
 object Product {
   implicit val productFormatter = Json.format[Product]
@@ -30,10 +34,7 @@ object Product {
   def toBsonDocument(product: Product): BsonDocument = {
     ("_id" := product._id)~
       ("name" := product.name)~
-      ("price":= product.price)
-  }
-  def update(product: Product, newName: String, newPrice: Double): Product = {
-    Product(product._id,newName,newPrice)
+      ("price":= product.price)~
   }
 }
 

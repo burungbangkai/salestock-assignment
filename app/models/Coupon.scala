@@ -18,7 +18,11 @@ import scala.concurrent.duration._
 /**
  * Created by bistokdl on 3/30/16.
  */
-case class Coupon(_id: String, code: String, validity: Boolean, value: Double)
+case class Coupon(_id: String, code: String, validity: Boolean, value: Double){
+  def update(newCode: String, newValidity: Boolean, newAmount: Double): Coupon = {
+    Coupon(_id, newCode,newValidity,newAmount)
+  }
+}
 
 object Coupon {
   implicit val couponFormatter = Json.format[Coupon]
@@ -31,9 +35,6 @@ object Coupon {
       ("code" := coupon.code) ~
       ("validity":=coupon.validity)~
       ("value":=coupon.value)
-  }
-  def update(coupon: Coupon, newCode: String, newValidity: Boolean, newAmount: Double): Coupon = {
-    Coupon(coupon._id, newCode,newValidity,newAmount)
   }
 }
 

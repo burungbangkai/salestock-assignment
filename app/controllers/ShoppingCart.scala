@@ -36,13 +36,10 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
                 cartRepo.create(customerId)
       futureResult.map(c=>Ok(Json.toJson(c.get)))
     })
-
-//    cartRepo.create(customerId, List(), 0)
-//      .map(newCart => Ok(Json.toJson(newCart.get)))
   }
-
+  
   /**
-    * an endpoint for retrieving  all the existing cart.
+    * an endpoint for retrieving all existing carts.
     * @return
     */
   def getAll = Action {
@@ -99,7 +96,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
         maybeCoupon.map(coupon => {
           cartRepo.findByCustomerId(customerId).flatMap(maybeCart =>
             maybeCart.map(cart => {
-              val updatedCart = Cart.setCoupon(cart, coupon)
+              val updatedCart = cart.setCoupon(coupon)
               cartRepo.update(updatedCart).map(result => Ok(Json.toJson(result.get)))
             }).getOrElse(
               Future {
@@ -118,7 +115,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     * a cart is exist for given @customerId. Otherwise, it will return 404.
     *
     * the updated cart will contain the item in its item list (named sales)
-    * and with updated the total.
+    * and with updated total.
     *
     * the item to be added must be available inside the request body
     * @param customerId
@@ -129,7 +126,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     logger.debug(s"adding item $item to customer's ($customerId) cart")
     cartRepo.findByCustomerId(customerId).flatMap(cart =>
       cart.map(custCart => {
-        val updatedCart = Cart.addItem(custCart, item.get)
+        val updatedCart = custCart.addItem(item.get)
         cartRepo.update(updatedCart).map(result =>
           Ok(Json.toJson(result.get)))
       }
@@ -151,7 +148,7 @@ class ShoppingCart @Inject()(cartRepo: CartRepo, couponRepo: CouponRepo)
     logger.debug(s"removing item with id: $itemId from customer's ($customerId) cart")
     cartRepo.findByCustomerId(customerId).flatMap(cart =>
       cart.map(custCart => {
-        val updatedCart = Cart.removeItem(custCart, itemId)
+        val updatedCart = custCart.removeItem(itemId)
         cartRepo.update(updatedCart).map(result =>
           Ok(Json.toJson(result.get)))
       }).getOrElse(

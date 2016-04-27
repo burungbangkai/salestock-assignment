@@ -31,7 +31,7 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
       val newName = "DODOL"
       val newPrice = 1250.0
       val result = await(productRepo.create("OLD",1100.0)).get
-      val updatedProduct = Product.update(result,newName,newPrice)
+      val updatedProduct = result.update(newName,newPrice)
       val updatedResult = await(productRepo.update(updatedProduct))
       updatedResult must not equal(None)
       updatedResult.get._id must equal(result._id)
@@ -67,7 +67,7 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
       val newValidity = false;
       val newAmount = 200.0
       val result = await(couponRepo.findByCode(couponCode)).get
-      val updatedCoupon = Coupon.update(result,newCode,newValidity,newAmount)
+      val updatedCoupon = result.update(newCode,newValidity,newAmount)
       val updatedResult = await(couponRepo.update(updatedCoupon))
       updatedResult must not equal(None)
       updatedResult.get._id must equal(result._id)
@@ -109,7 +109,7 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
     "successfully add an item to cart" in {
       val result = await(cartRepo.findByCustomerId(customerId)).get
       val item = await(productRepo.findByName(productName)).get
-      val updatedCart = Cart.addItem(result, item);
+      val updatedCart = result.addItem(item)
       val updatedResult = await(cartRepo.update(updatedCart)).get
       updatedResult._id must equal(result._id)
       updatedResult.sales must have size 1
@@ -122,7 +122,7 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
     "successfully remove an item from a cart" in {
       val result = await(cartRepo.findByCustomerId(customerId)).get
       val item = await(productRepo.findByName(productName)).get
-      val updatedCart = Cart.removeItem(result, item._id);
+      val updatedCart = result.removeItem(item._id)
       val updatedResult = await(cartRepo.update(updatedCart)).get
       updatedResult._id must equal(result._id)
       updatedResult.sales must have size result.sales.size-1
@@ -136,7 +136,7 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
       val amount = 100.0
       val validity = true
       val coupon = await(couponRepo.create(couponCode,validity,amount)).get
-      val updatedCart = Cart.setCoupon(result,coupon)
+      val updatedCart = result.setCoupon(coupon)
       val updatedResult = await(cartRepo.update(updatedCart)).get
       updatedResult must not equal(null)
       updatedResult.coupon must not equal(None)
@@ -147,9 +147,9 @@ class CartSpec extends PlaySpec with OneServerPerSuite {
     "successfully change total with coupon" in{
       val result = await(cartRepo.findByCustomerId(customerId)).get
       val coupon = await(couponRepo.findByCode(couponCode)).get
-      val updatedCart = Cart.setCoupon(result,coupon)
+      val updatedCart = result.setCoupon(coupon)
       val item = await(productRepo.findByName(productName)).get
-      val updatedCartWithItem = Cart.addItem(updatedCart,item)
+      val updatedCartWithItem = updatedCart.addItem(item)
       val updatedResult = await(cartRepo.update(updatedCartWithItem)).get
       updatedResult must not equal(null)
       updatedResult.coupon must not equal(None)
